@@ -4,7 +4,8 @@ import {
   View,
   StyleSheet,
   PanResponder,
-  ViewPropTypes
+  ViewPropTypes,
+  Dimensions
 } from 'react-native';
 
 // Fallback when RN version is < 0.44
@@ -21,7 +22,7 @@ export default class PinchZoomView extends Component {
 
   static defaultProps = {
     scalable: true,
-    minScale:0.5,
+    minScale:1,
     maxScale:2
   };
 
@@ -33,8 +34,7 @@ export default class PinchZoomView extends Component {
       offsetX: 0,
       offsetY: 0,
       lastX: 0,
-      lastY: 0,
-      lastMovePinch: false
+      lastY: 0
     },
     this.distant = 150;
   }
@@ -78,28 +78,33 @@ export default class PinchZoomView extends Component {
     });
   }
 
-  _handlePanResponderMove = (e, gestureState) => {
+  _handlePanResponderMove = (e, gestureState) => {    
     // zoom
     if (gestureState.numberActiveTouches === 2) {
       let dx = Math.abs(e.nativeEvent.touches[0].pageX - e.nativeEvent.touches[1].pageX);
       let dy = Math.abs(e.nativeEvent.touches[0].pageY - e.nativeEvent.touches[1].pageY);
       let distant = Math.sqrt(dx * dx + dy * dy);
       let scale = distant / this.distant * this.state.lastScale;
-      //check scale min to max hello
+      
       if ( scale < this.props.maxScale  && scale > this.props.minScale ){
-        this.setState({ scale, lastMovePinch: true });
+        this.setState({ scale });
       }
     }
     // translate
-    else if (gestureState.numberActiveTouches === 1) {
-      if (this.state.lastMovePinch) {
-        gestureState.dx = 0;
-        gestureState.dy = 0;
-      }
+    else if (gestureState.numberActiveTouches === 1 && this.state.scale !== 1) {
       let offsetX = this.state.lastX + gestureState.dx / this.state.scale;
       let offsetY = this.state.lastY + gestureState.dy / this.state.scale;
-      // if ( offsetX < 0  || offsetY <  0 )
-      this.setState({ offsetX, offsetY, lastMovePinch: false });
+      const { width, height } = Dimensions.get('window')
+
+      const factor = (this.state.scale - 1) / 4
+
+      const maxX = factor * width
+      const maxY = factor * height
+      
+      offsetX = Math.max(Math.min(offsetX, maxX), maxX * -1)      
+      offsetY = Math.max(Math.min(offsetY, maxY), maxY * -1)
+
+      this.setState({ offsetX, offsetY });
     }
   }
 
