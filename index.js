@@ -114,10 +114,10 @@ export default class PinchZoomView extends Component {
           {...this.gestureHandlers.panHandlers}
           style={[styles.container, this.props.style, {
             transform: [
-              {scaleX: this.state.scale},
-              {scaleY: this.state.scale},
-              {translateX: this.state.offsetX},
-              {translateY: this.state.offsetY}
+              {scaleX: this.props.scalable ? this.state.scale : 1},
+              {scaleY: this.props.scalable ? this.state.scale : 1},
+              {translateX: this.props.scalable ? this.state.offsetX : 0},
+              {translateY: this.props.scalable ? this.state.offsetY : 0}
             ]
           }]}>
           {this.props.children}
